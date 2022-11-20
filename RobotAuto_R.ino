@@ -136,6 +136,7 @@ uint16_t tickslimited(uint16_t inticks)
 uint16_t servoticks(uint16_t inticks)
 {
   uint16_t expovalue = 0;
+  inticks = map(inticks,MIN_TICKS,MAX_TICKS, 0,maxwinkel);
   if (inticks > maxwinkel/2)
   {
      expovalue = maxwinkel/2 +  expoarray[expolevel][inticks - maxwinkel/2];
@@ -160,39 +161,14 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
   Serial.print(canaldata.x);
   Serial.print(" ");
   */
-  char* pos = structindexarray[0];
-  
-  Serial.print(" ");
-
-
+ 
   // Tickbereich einhalten
   uint16_t lx = tickslimited(canaldata.lx);
   
  
-  //Serial.print(map(lx,0,4095, 0,255));
-  //Serial.println();
-  //Serial.print(" ");
-  //Serial.print(map(canaldata.ly,0,4095, 0,255));
+ 
 
-  // ticks umrechnen
-  int valueInt = map(lx,MIN_TICKS,MAX_TICKS, 0,180);
-  Serial.print(" valueInt: ");
-  Serial.print(valueInt);
-  int expovalue = 0;
-  
-  if (valueInt > maxwinkel/2)
-  {
-     expovalue = maxwinkel/2 +  expoarray[expolevel][valueInt - maxwinkel/2];
-  }
-  else
-  {
-     expovalue = maxwinkel/2 -  expoarray[expolevel][maxwinkel/2 - valueInt ];
-  }
-  
-   Serial.print(" expovalue: ");
-  Serial.print(expovalue);
-
-  uint16_t outvalue = servoticks(valueInt);
+  uint16_t outvalue = servoticks(lx);
   Serial.print(" outvalue: ");
   Serial.println(outvalue);
 
