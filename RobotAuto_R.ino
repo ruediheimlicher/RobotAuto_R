@@ -20,7 +20,11 @@
 // von ESP32 ROBOTAUTO
 
 #define NUM_SERVOS 4
-uint16_t          servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
+
+
+#define MAX_TICKS 3400
+#define MIN_TICKS 1700
+uint16_t   servomittearray[NUM_SERVOS] = {}; // Werte fuer Mitte
 
 uint16_t maxwinkel = 180;
 
@@ -92,7 +96,7 @@ void writeServoValues(int servoIndex, int value)
     recordedSteps.push_back(recordedStep);  
     previousTimeInMilli = currentTime;         
   }
-  Serial.printf("pin: [%d] servoindex: [%d] value: [%d]  \n",servoPins[servoIndex].servoPin , servoIndex, value);
+  //Serial.printf("pin: [%d] servoindex: [%d] value: [%d]  \n",servoPins[servoIndex].servoPin , servoIndex, value);
   servoPins[servoIndex].servo.write(value);   
 }
 
@@ -114,36 +118,68 @@ typedef struct canal_struct
 
 //Create a struct_message called canaldata
 canal_struct canaldata;
+char* structindexarray[] = {"lx","ly","rx","ry"};
+
+uint16_t tickslimited(uint16_t inticks)
+{
+  if(inticks > MAX_TICKS)
+  {
+    return  MAX_TICKS;
+  }
+  else if (inticks < MIN_TICKS)
+  {
+    return MIN_TICKS;
+  }
+ return inticks;
+}
+
+uint16_t servoticks(uint16_t inticks)
+{
+  uint16_t expovalue = 0;
+  if (inticks > maxwinkel/2)
+  {
+     expovalue = maxwinkel/2 +  expoarray[expolevel][inticks - maxwinkel/2];
+  }
+  else
+  {
+     expovalue = maxwinkel/2 -  expoarray[expolevel][maxwinkel/2 - inticks ];
+  }
+ return expovalue;
+}
 
 //callback function that will be executed when data is received
 void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) 
 {
   // blink
   digitalWrite(13,!digitalRead(13));
-
-
   memcpy(&canaldata, incomingData, sizeof(canaldata));
+ 
   /*Serial.print("Bytes received: ");
   Serial.println(len);
   Serial.print("x: ");
   Serial.print(canaldata.x);
   Serial.print(" ");
   */
+  char* pos = structindexarray[0];
   
-   Serial.print(canaldata.lx);
   Serial.print(" ");
-  Serial.print(map(canaldata.lx,0,4095, 0,255));
+
+
+  // Tickbereich einhalten
+  uint16_t lx = tickslimited(canaldata.lx);
+  
+ 
+  //Serial.print(map(lx,0,4095, 0,255));
   //Serial.println();
   //Serial.print(" ");
   //Serial.print(map(canaldata.ly,0,4095, 0,255));
-  
-  int valueInt = map(canaldata.lx,0,4095, 0,180);
+
+  // ticks umrechnen
+  int valueInt = map(lx,MIN_TICKS,MAX_TICKS, 0,180);
   Serial.print(" valueInt: ");
   Serial.print(valueInt);
-
-  
-  
   int expovalue = 0;
+  
   if (valueInt > maxwinkel/2)
   {
      expovalue = maxwinkel/2 +  expoarray[expolevel][valueInt - maxwinkel/2];
@@ -154,10 +190,15 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
   }
   
    Serial.print(" expovalue: ");
-  Serial.println(expovalue);
+  Serial.print(expovalue);
+
+  uint16_t outvalue = servoticks(valueInt);
+  Serial.print(" outvalue: ");
+  Serial.println(outvalue);
+
   
-  writeServoValues(1, 90 + ((180 - expovalue) - 90)/1); // red Ausschlaege
-  //  writeServoValues(1, 90 + ((180 - expovalue) - 90)/1);
+ // writeServoValues(1, expovalue); // red Ausschlaege
+ writeServoValues(1, outvalue); // red Ausschlaege
 
 }
 
