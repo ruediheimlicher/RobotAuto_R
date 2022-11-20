@@ -116,7 +116,12 @@ typedef struct canal_struct
 canal_struct canaldata;
 
 //callback function that will be executed when data is received
-void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
+void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) 
+{
+  // blink
+  digitalWrite(13,!digitalRead(13));
+
+
   memcpy(&canaldata, incomingData, sizeof(canaldata));
   /*Serial.print("Bytes received: ");
   Serial.println(len);
@@ -137,7 +142,7 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len) {
   Serial.print(valueInt);
 
   
-digitalWrite(13,!digitalRead(13));
+  
   int expovalue = 0;
   if (valueInt > maxwinkel/2)
   {
@@ -150,9 +155,9 @@ digitalWrite(13,!digitalRead(13));
   
    Serial.print(" expovalue: ");
   Serial.println(expovalue);
-
-  writeServoValues(1,90 + ((180 - expovalue) - 90)/1); // red Ausschlaege
-    
+  
+  writeServoValues(1, 90 + ((180 - expovalue) - 90)/1); // red Ausschlaege
+  //  writeServoValues(1, 90 + ((180 - expovalue) - 90)/1);
 
 }
 
@@ -185,13 +190,14 @@ void setup() {
   setUpPinModes();
   pinMode(12, OUTPUT);
   pinMode(14, OUTPUT);
-   pinMode(13, OUTPUT);
+  pinMode(13, OUTPUT);
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packer info
   esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
   esp_now_register_recv_cb(OnDataRecv);
 }
  
-void loop() {
+void loop() 
+{
 
 }
