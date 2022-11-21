@@ -110,7 +110,8 @@ typedef struct canal_struct
   uint16_t ly;
   uint16_t rx;
   uint16_t ry;
- 
+
+ uint16_t digi;
 
   int x;
   int y;
@@ -161,20 +162,26 @@ void OnDataRecv(uint8_t * mac, uint8_t *incomingData, uint8_t len)
   Serial.print(canaldata.x);
   Serial.print(" ");
   */
- 
+
+ // lx
   // Tickbereich einhalten
   uint16_t lx = tickslimited(canaldata.lx);
   
+  uint16_t outvalue_lx = servoticks(lx);
+  Serial.print(" outvalue_lx: ");
+  Serial.println(outvalue_lx);
  
- 
+ writeServoValues(1, outvalue_lx); // red Ausschlaege
 
-  uint16_t outvalue = servoticks(lx);
-  Serial.print(" outvalue: ");
-  Serial.println(outvalue);
-
+ // ly
+ // Tickbereich einhalten
+  uint16_t ly = tickslimited(canaldata.ly);
   
- // writeServoValues(1, expovalue); // red Ausschlaege
- writeServoValues(1, outvalue); // red Ausschlaege
+  uint16_t outvalue_ly = servoticks(ly);
+  Serial.print(" outvalue_ly: ");
+  Serial.println(outvalue_ly);
+ 
+ writeServoValues(0, outvalue_ly); // red Ausschlaege
 
 }
 
@@ -205,9 +212,9 @@ void setup() {
   }
 
   setUpPinModes();
-  pinMode(12, OUTPUT);
-  pinMode(14, OUTPUT);
-  pinMode(13, OUTPUT);
+  //pinMode(12, OUTPUT);
+  //pinMode(14, OUTPUT);
+  //pinMode(13, OUTPUT);
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packer info
   esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
